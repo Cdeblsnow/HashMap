@@ -6,9 +6,9 @@ class HashMap
   attr_reader :count
 
   def initialize
+    @bucket = Array.new(16, "")
     @load_factor = 0.8
-    @capacity = 16
-    @bucket = Array.new(@capacity, "")
+    @capacity = @bucket.length
     @head = nil
     @tail = nil
     @count = 0
@@ -24,7 +24,8 @@ class HashMap
   end
 
   def set(key, value)
-    index = hash(key) % 16
+    grow_bucket
+    index = hash(key) % @capacity
     @count += 1
     if @bucket[index] == ""
       @bucket[index] = append([key, value]) # insert when empty
@@ -33,6 +34,19 @@ class HashMap
     else
       @bucket[index].append([key, value]) # insert
 
+    end
+  end
+
+  def grow_bucket
+    grow = @capacity * @load_factor
+    number_of_entries = 0
+    @bucket.each { |entry| number_of_entries += 1 if entry != '' } # rubocop:disable Style/StringLiterals
+    if number_of_entries > grow && @bucket.length >= 16
+      dummy_bucket = Array.new(@bucket.length, '') # rubocop:disable Style/StringLiterals
+      @bucket += dummy_bucket
+    elsif number_of_entries > grow
+      dummy_bucket = Array.new(@bucket.length * 2, '') # rubocop:disable Style/StringLiterals
+      @bucket += dummy_bucket
     end
   end
 
