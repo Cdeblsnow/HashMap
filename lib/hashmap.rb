@@ -3,6 +3,7 @@ require_relative "node"
 
 class HashMap
   attr_accessor :bucket
+  attr_reader :count
 
   def initialize
     @load_factor = 0.8
@@ -10,6 +11,7 @@ class HashMap
     @bucket = Array.new(@capacity, "")
     @head = nil
     @tail = nil
+    @count = 0
   end
 
   def hash(key)
@@ -23,6 +25,7 @@ class HashMap
 
   def set(key, value)
     index = hash(key) % 16
+    @count += 1
     if @bucket[index] == ""
       @bucket[index] = append([key, value]) # insert when empty
     elsif @bucket[index].value[0] == key
@@ -66,9 +69,40 @@ class HashMap
   def remove(key)
     index = hash(key) % 16
     @bucket[index].each do |node|
-      return False if node.nil?
+      return nil unless node.next_node.value[0] == key
 
-      return True if node.value[0] == key
+      dummy = node.next_node
+      node.next_node = dummy.next_node # jump between nodes
+    end
+  end
+
+  def length
+    @count # can be replaced with atrr reader
+  end
+
+  def clear
+    @bucket = @bucket.map { |element| element = "" }
+  end
+
+  def keys
+    keys_array = []
+    @bucket.each do |entry|
+      @bucket[entry].each do |node|
+        return nil if node.nil? # try with and without
+
+        keys_array.push(node.value[0])
+      end
+    end
+  end
+
+  def values
+    keys_array = []
+    @bucket.each do |entry|
+      @bucket[entry].each do |node|
+        return nil if node.nil? # try with and without
+
+        keys_array.push(node.value[0])
+      end
     end
   end
 end

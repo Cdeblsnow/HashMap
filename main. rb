@@ -1,0 +1,5 @@
+require_relative "lib/hashmap"
+
+prueba = HashMap.new
+prueba.set("key", "value")
+p prueba.bucket
