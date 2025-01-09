@@ -9,8 +9,6 @@ class HashMap
     @bucket = Array.new(16, "")
     @load_factor = 0.8
     @capacity = @bucket.length
-    @head = nil
-    @tail = nil
     @count = 0
   end
 
@@ -28,7 +26,7 @@ class HashMap
     index = hash(key) % @capacity
     @count += 1
     if @bucket[index] == ""
-      @bucket[index] = append([key, value]) # insert when empty
+      @bucket[index] = Node.new([key, value]) # insert when empty
     elsif @bucket[index].value[0] == key
       @bucket[index].value[1] = value # update
     else
@@ -50,18 +48,6 @@ class HashMap
     end
   end
 
-  def append(value)
-    @node = Node.new # remove
-    @node.value = value
-    if @head.nil?
-      @head = @node
-      @tail = @node
-    else
-      @node.next_node = @head
-      @head = @node
-    end
-  end
-
   def get(key)
     index = hash(key) % 16
     @bucket[index].each do |node|
@@ -80,7 +66,7 @@ class HashMap
     end
   end
 
-  def remove(key)
+  def remove(key) # remove all items, work on that
     index = hash(key) % 16
     @bucket[index].each do |node|
       return nil unless node.next_node.value[0] == key
