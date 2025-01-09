@@ -3,13 +3,13 @@ require_relative "node"
 
 class HashMap
   attr_accessor :bucket
-  attr_reader :count
+  attr_reader :number_of_entries
 
   def initialize
     @bucket = Array.new(16, "")
     @load_factor = 0.8
     @capacity = @bucket.length
-    @count = 0
+    @number_of_entries = 0
   end
 
   def hash(key)
@@ -24,7 +24,6 @@ class HashMap
   def set(key, value)
     grow_bucket
     index = hash(key) % @capacity
-    @count += 1
     if @bucket[index] == ""
       @bucket[index] = Node.new([key, value]) # insert when empty
     elsif @bucket[index].value[0] == key
@@ -37,8 +36,7 @@ class HashMap
 
   def grow_bucket
     grow = @capacity * @load_factor
-    number_of_entries = 0
-    @bucket.each { |entry| number_of_entries += 1 if entry != '' } # rubocop:disable Style/StringLiterals
+    @bucket.each { |entry| @number_of_entries += 1 if entry != '' } # rubocop:disable Style/StringLiterals
     if number_of_entries > grow && @bucket.length >= 16
       dummy_bucket = Array.new(@bucket.length, '') # rubocop:disable Style/StringLiterals
       @bucket += dummy_bucket
@@ -77,7 +75,7 @@ class HashMap
   end
 
   def length
-    @count # can be replaced with atrr reader
+    # I need keys, two loops
   end
 
   def clear
