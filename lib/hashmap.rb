@@ -95,8 +95,8 @@ class HashMap
       next if entry == ""
 
       @head = entry.next_node && break if entry.value[0] == key
-      until entry.nil?
-        previous_node.next_node = entry.next_node if entry.value[0] == key && !previous_node.nil?
+      until entry.next_node.nil?
+        previous_node.next_node = entry.next_node && break if entry.value[0] == key
         entry = entry.next_node
       end
       previous_node = entry
