@@ -26,11 +26,23 @@ class HashMap
     index = hash(key) % @capacity
     if @bucket[index] == ""
       @bucket[index] = Node.new([key, value]) # insert when empty
-    elsif @bucket[index].value[0] == key
-      @bucket[index].value[1] = value # update
+    elsif has?(key)
+      update(key, value) # update
     else
       @bucket[index].append([key, value]) # insert
 
+    end
+  end
+
+  def update(key, value)
+    @bucket.each do |entry|
+      next if entry == ""
+
+      entry.value[1] = value if entry.value[0] == key
+      until entry.nil?
+        entry.value[1] = value if entry.value[0] == key
+        entry = entry.next_node
+      end
     end
   end
 
@@ -53,7 +65,7 @@ class HashMap
 
       value_found = entry.value[1] if entry.value[0] == key
 
-      until entry.next_node.nil? # loop trough nodes
+      until entry.nil? # loop trough nodes
         value_found = entry.value[1] if entry.value[0] == key
         entry = entry.next_node
       end
@@ -68,12 +80,12 @@ class HashMap
 
       exist = true if entry.value[0] == key
 
-      until entry.next_node.nil? # loop trough nodes
+      until entry.nil? # loop trough nodes
         exist = true if entry.value[0] == key
         entry = entry.next_node
       end
     end
-    p exist
+    exist
   end
 
   def remove(key) # too messy, improve and doesnt work
@@ -82,22 +94,14 @@ class HashMap
     @bucket.each do |entry|
       next if entry == ""
 
-      if entry.value[0] == key
-        entry_value = entry.value[1]
-        @head = entry.next_node # actual node
-      else
-        until entry.next_node.nil? # loop trough nodes
-          if entry.value[0] == key
-            entry_value = entry.value[1]
-            dummy = previous_node.next_node # actual node
-            previous_node.next_node = dummy.next_node
-          end
-          entry = entry.next_node
-        end
+      @head = entry.next_node && break if entry.value[0] == key
+      until entry.nil?
+        previous_node.next_node = entry.next_node if entry.value[0] == key && !previous_node.nil?
+        entry = entry.next_node
       end
-
       previous_node = entry
     end
+
     p entry_value
   end
 
@@ -122,29 +126,38 @@ class HashMap
   end
 
   def keys
-    keys_array = []
+    array = []
     @bucket.each do |entry|
-      @bucket[entry].each do |node|
-        return nil if node.nil? # try with and without
+      return nil if entry.nil?
 
-        keys_array.push(node.value[0])
+      next if entry == ""
+
+      array << entry.value[0] if entry.instance_of?(Node)
+      until entry.next_node.nil?
+        array << entry.next_node.value[0]
+        entry = entry.next_node
       end
     end
+    p array
   end
 
   def values
-    keys_array = []
+    array = []
     @bucket.each do |entry|
-      @bucket[entry].each do |node|
-        return nil if node.nil?
+      return nil if entry.nil?
 
-        keys_array.push(node.value[0])
+      next if entry == ""
+
+      array << entry.value[1] if entry.instance_of?(Node)
+      until entry.next_node.nil?
+        array << entry.next_node.value[1]
+        entry = entry.next_node
       end
     end
-    p keys_array
+    p array
   end
 
-  def entries # works
+  def entries
     array = []
     @bucket.each do |entry|
       return nil if entry.nil?
@@ -158,6 +171,5 @@ class HashMap
       end
     end
     p array
-    p array.length
   end
 end
