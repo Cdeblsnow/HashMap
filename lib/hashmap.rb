@@ -36,14 +36,11 @@ class HashMap
 
   def grow_bucket
     grow = @capacity * @load_factor
-    @bucket.each do |entry|
-      # lo esta recorriendo todo cada vez que es llamado, solo debe agregar una vez por instancia de node
-      @number_of_entries += 1 if entry.instance_of?(Node)
-    end
-    if number_of_entries > grow && @bucket.length >= 16
+    length
+    if @number_of_entries > grow && @bucket.length >= 16
       dummy_bucket = Array.new(@bucket.length, '') # rubocop:disable Style/StringLiterals
       @bucket += dummy_bucket
-    elsif number_of_entries > grow
+    elsif @number_of_entries > grow
       dummy_bucket = Array.new(@bucket.length * 2, '') # rubocop:disable Style/StringLiterals
       @bucket += dummy_bucket
     end
@@ -79,7 +76,7 @@ class HashMap
     p exist
   end
 
-  def remove(key) # too messy, improve
+  def remove(key) # too messy, improve and doesnt work
     entry_value = nil
     previous_node = nil
     @bucket.each do |entry|
@@ -105,11 +102,23 @@ class HashMap
   end
 
   def length
-    # I need keys, two loops
+    @number_of_entries = 0
+    @bucket.each do |entry|
+      next if entry == ""
+
+      @number_of_entries += 1 if entry.instance_of?(Node)
+
+      until entry.next_node.nil?
+        @number_of_entries += 1
+        entry = entry.next_node
+      end
+    end
+    @number_of_entries
   end
 
   def clear
     @bucket = @bucket.map { |element| element = "" }
+    @number_of_entries = 0
   end
 
   def keys
@@ -127,7 +136,7 @@ class HashMap
     keys_array = []
     @bucket.each do |entry|
       @bucket[entry].each do |node|
-        return nil if node.nil? # try with and without
+        return nil if node.nil?
 
         keys_array.push(node.value[0])
       end
