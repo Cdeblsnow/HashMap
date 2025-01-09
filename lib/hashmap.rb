@@ -36,7 +36,10 @@ class HashMap
 
   def grow_bucket
     grow = @capacity * @load_factor
-    @bucket.each { |entry| @number_of_entries += 1 if entry != '' } # rubocop:disable Style/StringLiterals
+    @bucket.each do |entry|
+      # lo esta recorriendo todo cada vez que es llamado, solo debe agregar una vez por instancia de node
+      @number_of_entries += 1 if entry.instance_of?(Node)
+    end
     if number_of_entries > grow && @bucket.length >= 16
       dummy_bucket = Array.new(@bucket.length, '') # rubocop:disable Style/StringLiterals
       @bucket += dummy_bucket
@@ -47,31 +50,58 @@ class HashMap
   end
 
   def get(key)
-    index = hash(key) % 16
-    @bucket[index].each do |node|
-      return nil if node.nil? # check
+    value_found = nil
+    @bucket.each do |entry|
+      next if entry == ""
 
-      puts node.value[1] if node.value[0] == key
+      value_found = entry.value[1] if entry.value[0] == key
+
+      until entry.next_node.nil? # loop trough nodes
+        value_found = entry.value[1] if entry.value[0] == key
+        entry = entry.next_node
+      end
     end
+    p value_found
   end
 
   def has?(key)
-    index = hash(key) % 16
-    @bucket[index].each do |node|
-      return False if node.nil? # check
+    exist = false
+    @bucket.each do |entry|
+      next if entry == ""
 
-      return True if node.value[0] == key
+      exist = true if entry.value[0] == key
+
+      until entry.next_node.nil? # loop trough nodes
+        exist = true if entry.value[0] == key
+        entry = entry.next_node
+      end
     end
+    p exist
   end
 
-  def remove(key) # remove all items, work on that
-    index = hash(key) % 16
-    @bucket[index].each do |node|
-      return nil unless node.next_node.value[0] == key
+  def remove(key) # too messy, improve
+    entry_value = nil
+    previous_node = nil
+    @bucket.each do |entry|
+      next if entry == ""
 
-      dummy = node.next_node
-      node.next_node = dummy.next_node # jump between nodes
+      if entry.value[0] == key
+        entry_value = entry.value[1]
+        @head = entry.next_node # actual node
+      else
+        until entry.next_node.nil? # loop trough nodes
+          if entry.value[0] == key
+            entry_value = entry.value[1]
+            dummy = previous_node.next_node # actual node
+            previous_node.next_node = dummy.next_node
+          end
+          entry = entry.next_node
+        end
+      end
+
+      previous_node = entry
     end
+    p entry_value
   end
 
   def length
@@ -102,5 +132,23 @@ class HashMap
         keys_array.push(node.value[0])
       end
     end
+    p keys_array
+  end
+
+  def entries # works
+    array = []
+    @bucket.each do |entry|
+      return nil if entry.nil?
+
+      next if entry == ""
+
+      array << entry.value if entry.instance_of?(Node)
+      until entry.next_node.nil?
+        array << entry.next_node.value
+        entry = entry.next_node
+      end
+    end
+    p array
+    p array.length
   end
 end
