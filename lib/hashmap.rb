@@ -88,18 +88,33 @@ class HashMap
     exist
   end
 
-  def remove(key) # too messy, improve and doesnt work
+  def remove(key)
     entry_value = nil
     previous_node = nil
-    @bucket.each do |entry|
+    @bucket.each.with_index do |entry, i|
       next if entry == ""
 
-      @head = entry.next_node && break if entry.value[0] == key
-      until entry.next_node.nil?
-        previous_node.next_node = entry.next_node && break if entry.value[0] == key
+      if entry.value[0] == key && @head.nil? # look for match in hashmap
+        @bucket[i] = ""
+        entry_value = entry.value[1]
+        break
+      elsif entry.value[0] == key
+        @head = @head.next_node
+        @bucket[i] = @head
+        entry_value = entry.value[1]
+        break
+      end
+
+      until entry.next_node.nil? # look for match inside linkedlist
+        previous_node = entry if entry.next_node.value[0] == key
         entry = entry.next_node
       end
-      previous_node = entry
+
+      next unless !previous_node.nil? && entry.value[0] == key
+
+      entry_value = entry.value[1]
+      dummy = entry.next_node
+      previous_node.next_node = dummy
     end
 
     p entry_value
